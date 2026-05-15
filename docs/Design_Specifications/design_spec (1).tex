@@ -1,0 +1,493 @@
+\documentclass[12pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{parskip}
+\usepackage{enumitem}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue
+}
+
+\title{\textbf{Design Specifications Document} \\ EagleNav -- Campus Navigation Using Augmented Reality}
+\author{
+Jian Mejia, Lcndr Aquino, George Barrone, Abigail Diaz, \\
+Isidoro Flores, Santhosh Kumar, David Lopez, Reda Masri, Athena Ruiz \\
+\\
+California State University, Los Angeles \\
+Office for Students with Disabilities (OSD)
+}
+\date{May 2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{center}
+\begin{tabularx}{0.8\textwidth}{|l|X|}
+\hline
+\textbf{Version} & 1.0 \\
+\hline
+\textbf{Date} & May 2026 \\
+\hline
+\textbf{Sponsor} & Office for Students with Disabilities (OSD) \\
+\hline
+\textbf{Faculty Advisor} & Dr. David Krum \\
+\hline
+\textbf{Platform} & Android 10+ / iOS 14+ | Flutter (Dart) \\
+\hline
+\textbf{Status} & Final -- Academic Year 2025--2026 \\
+\hline
+\end{tabularx}
+\end{center}
+
+\newpage
+\tableofcontents
+\newpage
+
+\section{Project Overview}
+
+\subsection{Purpose}
+EagleNav is an augmented reality campus navigation platform built for Android and iOS that uses custom high-precision mapping of the Cal State LA campus. The application is designed to support students with disabilities by offering accessible, independence-focused navigation tools including AR directional arrows, voice-guided directions, LiDAR-enhanced obstacle awareness, and seamless integration with campus events and building data. EagleNav aims to remove navigation barriers and create a more inclusive campus experience for all students, faculty, staff, and visitors at California State University, Los Angeles.
+
+\subsection{Scope}
+\begin{itemize}
+    \item Geographic coverage: Cal State LA main campus only -- academic buildings, student services, housing perimeter paths, and all parking structures.
+    \item Indoor coverage (v1): Major public corridors, elevators, ramps, and primary entrances/exits of high-traffic buildings.
+    \item Off-campus routing is not supported.
+\end{itemize}
+
+\subsection{Project Team}
+\begin{tabularx}{\textwidth}{|l|l|X|}
+\hline
+\textbf{Name} & \textbf{Sub-team} & \textbf{Role} \\
+\hline
+Jian Mejia & Computer Vision & Computer Vision Lead \\
+\hline
+Isidoro Flores & Computer Vision & Computer Vision \\
+\hline
+Santhosh Kumar & Computer Vision & Computer Vision \\
+\hline
+Abigail Diaz & Path Tracing & Path Tracing Lead \\
+\hline
+Reda Masri & Path Tracing & Path Tracing \\
+\hline
+George Barrone & Path Tracing & Path Tracing \\
+\hline
+Lcndr Aquino & Haptics & Haptics \\
+\hline
+Athena Ruiz & Haptics & Haptics \\
+\hline
+David Roberto Lopez & Data & Data \\
+\hline
+\end{tabularx}
+
+\subsection{Key Stakeholders}
+\begin{itemize}
+    \item Project Sponsor: Office for Students with Disabilities (OSD), Cal State LA
+    \item Faculty Advisor: Dr. David Krum
+    \item Primary Users: CSULA students with disabilities (wheelchair, visually impaired, hearing impaired)
+    \item Secondary Users: General student body, OSD staff, campus security, campus visitors
+\end{itemize}
+
+\section{Design Goals and Principles}
+
+\subsection{Core Design Goals}
+\begin{itemize}
+    \item \textbf{Accessibility First:} All features must be usable by students with visual, hearing, mobility, and cognitive disabilities.
+    \item \textbf{Independence-Focused:} Navigation should empower users to navigate without requiring assistance from others.
+    \item \textbf{Multimodal Feedback:} Every critical interaction must provide at minimum two of: visual, audio, and haptic feedback.
+    \item \textbf{Graceful Degradation:} The app must function in degraded connectivity environments and fall back gracefully.
+    \item \textbf{Minimal Cognitive Load:} UI complexity is strictly limited; interfaces must be intuitive without training.
+\end{itemize}
+
+\subsection{Design Principles}
+\begin{itemize}
+    \item Deterministic routing: identical inputs always produce identical routes.
+    \item Body-relative directions: all navigation cues reference the user's current facing direction, not cardinal directions.
+    \item Redundant signals: every turn or alert is communicated via color + vibration + text.
+    \item Independent voice channel: app speech is fully separate from system accessibility tools (VoiceOver / TalkBack).
+    \item No gesture conflicts with OS accessibility layers.
+\end{itemize}
+
+\section{System Architecture}
+
+\subsection{Architectural Overview}
+EagleNav follows a three-tier layered architecture: Cloud Infrastructure, an on-device Controller Layer, and an on-device Service Layer. Each tier has a single responsibility, communicates only downward through well-defined interfaces, and is independently replaceable.
+
+\subsection{Cloud Infrastructure}
+\begin{itemize}
+    \item \textbf{Cloudflare R2:} Object storage hosting the campus OpenStreetMap extract (\texttt{renum\_file.osm.pbf}). Valhalla loads this file into memory on startup.
+    \item \textbf{Valhalla Routing Engine:} Open-source routing engine running on a Google Cloud Platform virtual machine; exposes a REST API consumed by the Flutter client.
+\end{itemize}
+
+\subsection{Controller Layer (On-Device)}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Controller} & \textbf{Responsibility} \\
+\hline
+LocationController & Manages GPS stream, filters fixes by accuracy, exposes reactive current position. \\
+\hline
+RoutingController & Fetches routes from Valhalla, tracks deviation, triggers reroutes. \\
+\hline
+GuidanceController & Tracks step progression, advances steps at turn points, detects arrival. \\
+\hline
+NavigationVoiceController & Produces spoken instructions, manages TTS priority, exposes smoothed compass heading. \\
+\hline
+UiNavigationController & Owns four UI states: idle, destinationSelected, navigating, arrived. \\
+\hline
+\end{tabularx}
+
+\subsection{Service Layer (On-Device)}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Service} & \textbf{Responsibility} \\
+\hline
+LocationService & Wraps geolocator plugin; exposes filtered position stream. \\
+\hline
+ValhallaService & Formats routing requests, posts over HTTPS, parses JSON response into typed step objects. \\
+\hline
+CompassService & Wraps flutter\_compass; smooths magnetometer signal; exposes stable heading. \\
+\hline
+TTS Manager & Wraps flutter\_tts with priority queue -- urgent cues interrupt non-urgent ones. \\
+\hline
+HapticFeedback & Wraps device vibration API; produces patterned cues for turn events. \\
+\hline
+InstructionEnhancer & Converts Valhalla maneuver codes, distances, and angles into body-relative spoken phrases. \\
+\hline
+OrientationCoach & At route start, compares compass heading to first-segment bearing; produces alignment cues. \\
+\hline
+OffCourseDetector & Uses heading-aware thresholds (45m when aligned, 15m when opposed) for reroute decisions. \\
+\hline
+LandmarkService & On user request, computes nearby buildings and speaks their body-relative position. \\
+\hline
+\end{tabularx}
+
+\subsection{Technology Stack}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Layer / Component} & \textbf{Technology} \\
+\hline
+Mobile Framework & Flutter 3.x / Dart 3.x (cross-platform iOS \& Android) \\
+\hline
+Maps & flutter\_map with OpenStreetMap tiles \\
+\hline
+Routing Engine & Valhalla (open-source) on Google Cloud Platform via REST \\
+\hline
+Map Data & OpenStreetMap extract (.osm.pbf) on Cloudflare R2 \\
+\hline
+AR & ARCore (Android) / ARKit (iOS) via Flutter platform channels \\
+\hline
+Computer Vision (Android) & YOLO-based object detection via TensorFlow Lite \\
+\hline
+Computer Vision (iOS) & YOLO-based with CoreML; LiDAR hardware depth on supported devices \\
+\hline
+Local Storage & SharedPreferences (settings/bookmarks); JSON/GeoJSON assets \\
+\hline
+Security & TLS for all network calls; PII minimized; location processed on-device when possible \\
+\hline
+\end{tabularx}
+
+\section{Data Flow Design}
+
+\subsection{Route Planning Subsystem}
+\begin{tabularx}{\textwidth}{|l|l|X|}
+\hline
+\textbf{\#} & \textbf{Process} & \textbf{Description} \\
+\hline
+P1.1 & Building Selector & Resolves closest accessible entrance from buildings.json using current GPS. \\
+\hline
+P1.2 & RoutingController & Assembles routing request and manages request lifecycle including reroutes. \\
+\hline
+P1.3 & ValhallaService & Formats request as JSON, POSTs to Valhalla over HTTPS, parses response into typed route object. \\
+\hline
+P1.4 & Valhalla Engine & Computes optimal pedestrian route with sidewalk preference and unpaved exclusion. \\
+\hline
+\end{tabularx}
+
+\subsection{Guidance Subsystem}
+LocationController emits a filtered GPS position which the screen forwards to RoutingController and GuidanceController. RoutingController computes deviation using heading-aware thresholds (45m when aligned, 15m when opposed). GuidanceController checks step progression and advances the step index when the user passes a step endpoint. InstructionEnhancer converts maneuver codes and compass angles into body-relative spoken phrases, and HapticFeedback fires alongside each spoken cue.
+
+\subsection{Compass and Orientation Subsystem}
+The CompassService smooths magnetometer readings and exposes \texttt{currentHeading} as a reactive notifier. The OrientationCoach runs at navigation start and selects a coaching phrase based on the angle between the user's heading and the route's first segment:
+
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Angle Range} & \textbf{Coaching Phrase} \\
+\hline
+$|$angle$|$ $<$ 15 degrees & Walk straight ahead \\
+\hline
+15 -- 45 degrees & Slightly to your right / left \\
+\hline
+45 -- 150 degrees & Turn to your right / left \\
+\hline
+$|$angle$|$ $>$ 150 degrees & Turn around \\
+\hline
+\end{tabularx}
+
+\subsection{Landmark Service Subsystem}
+The Landmark Service is user-initiated and operates independently of active navigation. It finds nearby buildings within a 50m radius, computes a body-relative bearing for each, converts metric distance to approximate step count (0.76m stride), and announces the result (e.g., ``Library is to your front right, about 30 steps away.'').
+
+\subsection{Events Subsystem}
+The EventsScreen fetches HTML from the CSULA Events website, parses it into structured event data, and displays it to the user. Users can bookmark events stored locally via SharedPreferences, and a notification scheduler fires local notifications for upcoming bookmarked events.
+
+\subsection{Computer Vision Subsystem}
+The camera captures real-time video input processed by YOLO-based detection and segmentation models. Detected objects are filtered by direction (left, ahead, right) and urgency, then delivered via TTS and haptics. Android uses a TensorFlow Lite depth estimator; iOS uses LiDAR hardware on supported devices with CoreML model equivalents otherwise.
+
+\section{Functional Requirements}
+
+\subsection{General Application Behavior}
+\begin{itemize}
+    \item FR-0.1: Display the campus map as the default view on launch.
+    \item FR-0.2: Provide access to Home, Favorites, Alerts, Profile, and Emergency Assistance from all views.
+    \item FR-0.3: On launch, focus the search bar and announce via TTS: ``Search for a destination.''
+\end{itemize}
+
+\subsection{Destination Selection and Confirmation}
+\begin{itemize}
+    \item FR-1.1 / 1.2: Search for buildings by typing or speaking; results update dynamically.
+    \item FR-2.1: Display generated route color-coded before navigation begins.
+    \item FR-2.3: Display route summary: total distance, estimated travel time, and entrance name.
+    \item FR-2.5: Show ``Start Navigation'' button after route summary is presented.
+\end{itemize}
+
+\subsection{Core Navigation}
+\begin{itemize}
+    \item FR-3.1: Use a custom pedestrian path network for on-campus routing (Valhalla with campus OSM data).
+    \item FR-3.2: At navigation start, provide turn-by-turn guidance and announce initial walking direction.
+    \item FR-3.3: Alert the user of obstacles (stairs, blockages, construction).
+    \item FR-3.4: Auto-recalculate route when the user deviates from the planned path.
+    \item FR-3.5: Vibrate when off-route or approaching a turn.
+\end{itemize}
+
+\subsection{Navigation Enhancements (v1.6)}
+\begin{itemize}
+    \item FR-14.1: Route to the closest accessible entrance from buildings.json.
+    \item FR-14.2: Express all directions body-relative (e.g., ``slightly to your right''), not cardinal.
+    \item FR-14.3: Apply heading-aware deviation thresholds (45m when aligned, 15m when opposed).
+    \item FR-14.4: Two-phase navigation start -- Phase 1 guides to path network; Phase 2 begins turn-by-turn.
+    \item FR-14.5: TTS priority queue -- urgent cues (turn-now, arrival) interrupt non-urgent ones.
+    \item FR-14.7: Express distances in approximate step counts, not meters.
+    \item FR-14.8: Arrival detection at 8m from final step endpoint; announce door direction body-relative.
+    \item FR-14.9: Valhalla pedestrian costing: prefer sidewalks/walkways, penalize alleys/tunnels, exclude unpaved.
+\end{itemize}
+
+\subsection{Accessibility Requirements}
+
+\subsubsection{Mobility Support}
+Large, high-contrast touch targets throughout. Voice commands for destination entry and navigation start. One-tap shortcuts to library, cafeteria, and OSD office. Prioritize ramps, elevators, and automatic doors in route generation.
+
+\subsubsection{Hearing Support}
+Distinct haptic patterns for left turn, right turn, straight, and wrong turn. Text mode for turn-by-turn instructions as readable text. Customizable vibration intensity and distance alerts.
+
+\subsubsection{Vision Support}
+Full compatibility with VoiceOver (iOS) and TalkBack (Android). Spoken descriptions of all menus, buttons, and navigation steps. Adjustable font sizes and zoom levels.
+
+\subsubsection{Cognitive Support}
+Simple, sequential navigation instructions. Landmark-based guidance (e.g., ``Turn right at the fountain''). Optional confirmation after each instruction.
+
+\section{Non-Functional Requirements}
+
+\begin{tabularx}{\textwidth}{|l|l|X|}
+\hline
+\textbf{Category} & \textbf{Requirement} & \textbf{Target} \\
+\hline
+Performance & Route generation latency & 95\% of routes computed in less than 3 seconds \\
+\hline
+Performance & App cold start & Less than 2.5 seconds \\
+\hline
+Performance & UI frame budget & 16ms target (60 fps) \\
+\hline
+Reliability & Core function uptime & 99\% uptime \\
+\hline
+Safety & Emergency button offline & Must function offline via SMS fallback \\
+\hline
+Security & Data encryption & End-to-end TLS; location data encrypted at rest and in transit \\
+\hline
+Security & PII minimization & No student records; location processed on-device when possible \\
+\hline
+Usability & Accessibility default & Accessibility features enabled on first run \\
+\hline
+Compatibility & OS support & Android 10+ and iOS 14+ \\
+\hline
+\end{tabularx}
+
+\section{User Interface Design}
+
+\subsection{Design Principles}
+\begin{itemize}
+    \item Clean, minimal UI -- reduces cognitive load and makes core functions immediately discoverable.
+    \item Large touch targets -- minimum 44x44pt (Apple HIG) for low-vision users.
+    \item Optional high-contrast mode toggled from the accessibility profile.
+    \item Customizable font sizes from the settings screen.
+    \item Screen reader support as a first-class requirement, not an afterthought.
+\end{itemize}
+
+\subsection{Screen Inventory}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Screen} & \textbf{Key Elements} \\
+\hline
+Home / Map & Search bar, campus map, current-location pin, bottom navigation bar \\
+\hline
+Route Preview & Color-coded route polyline, destination marker, route summary card, Start Navigation button \\
+\hline
+Navigation / Guidance & Turn banner, progress indicator, AR button, haptic/voice toggles, End/Cancel button \\
+\hline
+Favorites & Saved locations, quick-start navigation, edit/delete options \\
+\hline
+Events & Campus event list, bookmark toggle, local notification scheduler \\
+\hline
+Accessibility Profile & Profile selector, TTS speed/pitch/volume, haptic intensity, high-contrast toggle, font size slider \\
+\hline
+Emergency & One-touch campus security call, Safe Walk toggle, confirmation prompt \\
+\hline
+\end{tabularx}
+
+\subsection{UI Navigation Flow}
+HomeMap $\rightarrow$ (Search or Favorite tap) $\rightarrow$ RoutePreview $\rightarrow$ Start $\rightarrow$ Guidance $\rightarrow$ (Deviation? $\rightarrow$ Recalculate) $\rightarrow$ Arrive $\rightarrow$ Done
+
+\section{Database and Data Design}
+
+\subsection{Local Data Assets}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{File / Store} & \textbf{Purpose} \\
+\hline
+buildings.json & Campus building names with accessible entrance coordinates. \\
+\hline
+buildings.geojson & Building footprints and entrance coordinates for map rendering. \\
+\hline
+bookmarks.json & User-saved routes and locations. \\
+\hline
+SharedPreferences & User accessibility preferences, app settings, and bookmarked events. \\
+\hline
+depth\_estimator.tflite & Android TensorFlow Lite model for object distance estimation. \\
+\hline
+object\_detector.tflite & Android TensorFlow Lite model for real-time YOLO object detection. \\
+\hline
+labels.txt & Classification label definitions for the object detection model. \\
+\hline
+renum\_file.osm.pbf & Campus OpenStreetMap extract on Cloudflare R2. \\
+\hline
+\end{tabularx}
+
+\subsection{Data Security Constraints}
+\begin{itemize}
+    \item All network calls over TLS; no plaintext transmission of location data.
+    \item No student records stored or transmitted; PII minimized throughout.
+    \item Sensitive data encrypted at rest on-device.
+    \item Emergency location sharing transmits only to campus security / OSD, not third parties.
+\end{itemize}
+
+\section{Implementation Status (v1.6)}
+
+\begin{tabularx}{\textwidth}{|l|l|l|X|}
+\hline
+\textbf{FR} & \textbf{Feature Group} & \textbf{Status} & \textbf{Notes} \\
+\hline
+FR-0 & General Application Behavior & Implemented & Map default view, core navigation, TTS on launch. \\
+\hline
+FR-1 & Destination Selection & Implemented & Search, dynamic results, map tap, clear. \\
+\hline
+FR-2 & Destination Confirmation & Implemented & Route preview, summary, Start Navigation. \\
+\hline
+FR-3 & Core Navigation & Implemented & Turn-by-turn, deviation detection, rerouting, haptics. \\
+\hline
+FR-4 & Accessibility -- Mobility & Partial & Voice commands, shortcuts, emergency profiles deferred. \\
+\hline
+FR-5 & Accessibility -- Hearing & Partial & Haptic turn patterns implemented. Custom settings deferred. \\
+\hline
+FR-6 & Accessibility -- Vision & Partial & Screen reader, font/zoom implemented. Voice input deferred. \\
+\hline
+FR-13 & Speech Feedback (TTS) & Implemented & Full TTS pipeline implemented. \\
+\hline
+FR-14 & Navigation Enhancements & Implemented & Closest-entrance, body-relative, heading-aware, two-phase start. \\
+\hline
+FR-15 & Orientation \& Awareness & Implemented & CompassService, OrientationCoach, LandmarkService. \\
+\hline
+FR-9 & Personalization \& Scheduling & Future Work & All requirements deferred. \\
+\hline
+FR-12 & Accessibility -- Color Blind & Future Work & All color-blind themes deferred. \\
+\hline
+\end{tabularx}
+
+\section{Testing and Validation Strategy}
+
+\begin{itemize}
+    \item \textbf{Unit Tests:} CompassService smoothing, InstructionEnhancer phrase generation, OffCourseDetector thresholds.
+    \item \textbf{Integration Tests:} Route planning pipeline; Events parsing and notification scheduling.
+    \item \textbf{Walk Tests:} End-to-end turn-by-turn guidance; reroute on deviation; arrival detection; LandmarkService with real buildings.
+    \item \textbf{Manual Tests:} TTS priority interruption; VoiceOver / TalkBack compatibility; gesture non-conflict.
+    \item \textbf{Performance Tests:} Route latency (less than 3s 95th percentile); cold start (less than 2.5s); UI frame time.
+\end{itemize}
+
+\section{Future Work}
+
+\subsection{Deferred Features}
+\begin{itemize}
+    \item Voice commands for destination entry and navigation initiation.
+    \item Elevator/ramp preference in route costing.
+    \item Emergency button with offline SMS fallback.
+    \item Full accessibility user profiles -- wheelchair, cane, temporary injury.
+    \item Color-blind UI themes (protanopia, deuteranopia, tritanopia).
+    \item Indoor room-to-room routing and wing/floor search.
+    \item Personalization and scheduling -- bookmarks, class schedules, SIS integration.
+\end{itemize}
+
+\subsection{Potential Enhancements}
+\begin{itemize}
+    \item SIS integration to auto-import class schedules and provide next-class routing suggestions.
+    \item Multi-language support (en-US baseline with right-to-left readiness).
+    \item Wearable device integration for haptic-only navigation guidance.
+\end{itemize}
+
+\section{Glossary}
+
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Term} & \textbf{Definition} \\
+\hline
+AR & Augmented Reality -- overlays digital navigation markers on the physical world via the device camera. \\
+\hline
+Body-relative direction & Direction expressed relative to the user's current facing rather than cardinal direction. \\
+\hline
+CompassService & On-device service that smooths and validates raw magnetometer readings, exposing currentHeading. \\
+\hline
+GuidanceController & Real-time navigation processor tracking step progression and detecting arrival. \\
+\hline
+InstructionEnhancer & Converts Valhalla maneuver codes, distances, and angles into spoken body-relative phrases. \\
+\hline
+LandmarkService & Identifies nearby campus buildings and announces body-relative direction and step distance. \\
+\hline
+OffCourseDetector & Uses heading-aware thresholds to decide when to trigger a route recalculation. \\
+\hline
+OrientationCoach & One-shot service at navigation start aligning the user with the route's first segment. \\
+\hline
+OSD & Office for Students with Disabilities at Cal State LA; primary project sponsor. \\
+\hline
+RoutingController & On-device controller managing route requests, active route state, and rerouting. \\
+\hline
+TTS & Text-to-Speech -- converts navigation instructions to spoken audio. \\
+\hline
+Valhalla & Open-source routing engine hosted on GCP, computing pedestrian routes from OSM data. \\
+\hline
+\end{tabularx}
+
+\section{References}
+
+\begin{enumerate}
+    \item EagleNav Software Requirements Specification (SRS) v1.6 -- OSD, Cal State LA, May 2026
+    \item EagleNav Software Design Document (SDD) v4.0 -- OSD, Cal State LA, May 2026
+    \item IEEE Std 830-1998 -- IEEE Recommended Practice for Software Requirements Specifications
+    \item CSULA Campus Map. \url{https://www.calstatela.edu/map}
+    \item Valhalla Routing Engine. \url{https://github.com/valhalla/valhalla}
+    \item Flutter / Dart Documentation. \url{https://docs.flutter.dev}
+    \item Apple Human Interface Guidelines -- Accessibility
+    \item Android Accessibility Developer Guide -- TalkBack \& Touch Targets
+\end{enumerate}
+
+\end{document}
