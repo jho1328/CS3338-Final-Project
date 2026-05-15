@@ -24,3 +24,4 @@
 *.nav
 *.snm
 *.vrb
+.vscode/settings.json
