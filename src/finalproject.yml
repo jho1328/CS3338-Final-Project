@@ -1,0 +1,54 @@
+version: "3.9"
+
+services:
+  routing-engine:
+    image: ghcr.io/gis-ops/docker-valhalla/valhalla:latest
+    container_name: eaglenav-routing-engine
+    restart: unless-stopped
+    ports:
+      - "8002:8002"
+    volumes:
+      - ./maps:/data
+      - ./valhalla/custom_files:/custom_files
+    environment:
+      - tile_urls=/data/renum_file.osm.pbf
+      - server_threads=4
+      - use_tiles_ignore_pbf=True
+
+  map-server:
+    image: nginx:latest
+    container_name: eaglenav-map-server
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./maps:/usr/share/nginx/html/maps:ro
+    depends_on:
+      - routing-engine
+
+  events-service:
+    image: node:20
+    container_name: eaglenav-events-service
+    working_dir: /app
+    command: sh -c "npm install && npm run dev"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./events-service:/app
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+    depends_on:
+      - map-server
+
+  docs-server:
+    image: nginx:latest
+    container_name: eaglenav-docs-server
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    volumes:
+      - ./docs:/usr/share/nginx/html:ro
+
+volumes:
+  valhalla_data:
