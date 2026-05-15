@@ -1,0 +1,120 @@
+\documentclass[12pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{parskip}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue
+}
+
+\title{\textbf{Software Requirements Specification} \\ For EagleNav Version 1.6}
+\author{Prepared by: Team 2 \\
+Anna Guerrero-Leon, Jose Mateo Ayala, Justin Ho, Min Park \\
+California State University, Los Angeles}
+\date{May 15, 2026}
+
+\begin{document}
+
+\maketitle
+\newpage
+
+\tableofcontents
+\newpage
+
+%% Version Description Table
+\section*{Version Description}
+\begin{tabularx}{\textwidth}{|l|l|X|l|}
+\hline
+\textbf{Name} & \textbf{Date} & \textbf{Reason for Changes} & \textbf{Version} \\
+\hline
+Anna Guerrero-Leon & 5/12/26 & Added Document Sections and updated Section 1 & 1.0 \\
+\hline
+Jose Mateo Ayala & 5/14/26 & Updated Sections 1, 2, 3, and 4 & 1.0 \\
+\hline
+Anna Guerrero-Leon & 5/14/26 & Update Table of Contents and edits & 1.0 \\
+\hline
+\end{tabularx}
+
+\newpage
+
+%% Section 1: Introduction
+\section{Introduction}
+
+\subsection{Purpose}
+
+This document specifies the software requirements for EagleNav, a mobile application designed to improve accessibility and navigation on the CSULA campus, with a strong focus on students supported by the Office for Students with Disabilities (OSD). This is the initial version of the SRS and represents the baseline requirements for the project's first release.
+
+\subsection{Intended Audience}
+
+This document is intended for:
+
+\begin{itemize}
+    \item \textbf{Developers:} Use Section 4 for functional and interface requirements.
+    \item \textbf{Testers/QA:} Focus on Section 4 and Section 5 for measurable test cases.
+    \item \textbf{Project Managers:} Review Sections 2 and 5 for goals, scope, and constraints.
+    \item \textbf{OSD Staff \& Students:} Refer to Section 2 and Section 3 for user-facing features and accessibility considerations.
+    \item \textbf{Documentation Writers:} Use Sections 2.7 and 3.1 for guides and onboarding documentation.
+\end{itemize}
+
+This product is intended for:
+
+\begin{itemize}
+    \item \textbf{Primary Users:} CSULA students (including OSD-supported users), staff, and faculty.
+    \item \textbf{Secondary Users:} Campus visitors.
+\end{itemize}
+
+EagleNav is designed to improve accessibility and campus mobility through accessible route planning, voice-guided navigation, and real-time navigation assistance. The system helps users locate buildings, classrooms, and accessibility resources across the CSULA campus. The application also supports safety and inclusion by offering user-friendly navigation tools and accessibility-focused design features.
+
+%% Section 2: External Interface Requirements
+\section{External Interface Requirements}
+
+EagleNav provides a simple and accessible user interface designed for students, faculty, staff, and visitors. The interface includes large buttons, readable fonts, voice guidance, and high-contrast display options to support users with different accessibility needs. Users can search for destinations using either typed or voice-based input and receive navigation guidance through visual, audio, and vibration feedback.
+
+The application communicates with external services such as GPS location systems, routing APIs, and campus map data providers. Device hardware, including cameras, microphones, vibration motors, and compass sensors, supports navigation and accessibility functions. EagleNav also uses secure HTTPS connections to protect communication between the mobile application and external routing services.
+
+The system is designed for Android and iOS mobile devices using the Flutter framework. The application requires internet access, GPS permissions, and access to accessibility services such as screen readers and text-to-speech systems. These external interfaces allow the application to provide accurate navigation and real-time route guidance across the CSULA campus.
+
+%% Section 3: Legal and Ethical Considerations
+\section{Legal and Ethical Considerations}
+
+EagleNav is designed to support accessibility and equal access for all users, especially students supported by the Office for Students with Disabilities (OSD). The application follows ethical principles by promoting inclusion, independence, and user safety throughout the navigation experience. Accessibility-focused design features, such as voice guidance, screen reader support, and high-contrast themes, are included to support users with diverse needs.
+
+The application respects user privacy by minimizing the collection and storage of personal information. Location data is only used to provide navigation assistance and emergency support features during active sessions. All communication between the application and external services uses secure HTTPS encryption to help protect user information.
+
+EagleNav must also comply with university policies and accessibility standards related to digital accessibility and student support services. Developers are responsible for ensuring that the application remains safe, reliable, and accessible for all users. Ethical development practices, accessibility testing, and regular system updates are necessary to maintain trust and usability throughout the project lifecycle.
+
+%% Section 4: Glossary
+\section{Glossary}
+
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Term} & \textbf{Definition} \\
+\hline
+OSD & Office for Students with Disabilities \\
+\hline
+GPS & Global Positioning System \\
+\hline
+AR & Augmented Reality \\
+\hline
+API & Application Programming Interface \\
+\hline
+UI & User Interface \\
+\hline
+SRS & Software Requirements Specification \\
+\hline
+SDD & Software Design Document \\
+\hline
+Text-to-Speech & Technology that converts written text into spoken audio \\
+\hline
+Routing Engine & External service used to calculate navigation paths \\
+\hline
+Accessibility & Design practices that support users with disabilities \\
+\hline
+\end{tabularx}
+
+\end{document}

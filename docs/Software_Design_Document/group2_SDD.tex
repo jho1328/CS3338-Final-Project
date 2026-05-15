@@ -1,0 +1,111 @@
+\documentclass[12pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{titlesec}
+\usepackage{parskip}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue
+}
+
+\title{\textbf{Software Design Document} \\ EagleNav Version 1.6}
+\author{Prepared By: Team 2 \\
+Anna Guerrero-Leon, Jose Mateo Ayala, Justin Ho, Min Park \\
+California State University, Los Angeles}
+\date{May 15, 2026}
+
+\begin{document}
+
+\maketitle
+\newpage
+
+\tableofcontents
+\newpage
+
+%% Version Description Table
+\section*{Version Description}
+\begin{tabularx}{\textwidth}{|l|l|X|l|}
+\hline
+\textbf{Name} & \textbf{Date} & \textbf{Reason for Changes} & \textbf{Version} \\
+\hline
+Anna Guerrero-Leon & 5/12/26 & Updated Sections 1, 2, 3, 4 and 5 & 1.0 \\
+\hline
+Jose Mateo Ayala & 5/14/26 & Completed Section 1, 2, and 5 & 1.0 \\
+\hline
+Anna Guerrero-Leon & 5/14/26 & Completed Section 3 and edits & 1.0 \\
+\hline
+\end{tabularx}
+
+\newpage
+
+%% Section 1: Introduction
+\section{Introduction}
+
+EagleNav is a mobile campus navigation application designed to improve accessibility and navigation for students, staff, and visitors at California State University, Los Angeles. The system focuses on supporting students with disabilities by providing accessible route guidance, voice navigation, and user-friendly navigation tools. The application combines indoor and outdoor navigation features to help users travel across campus more efficiently and safely.
+
+The purpose of this Software Design Document (SDD) is to describe the technical design and structure of the EagleNav system. This document explains the overall architecture, user interface design, and software components used to develop the application. It also provides developers and stakeholders with a clear understanding of how the system is organized and implemented.
+
+EagleNav is designed using a layered architecture that separates the user interface, controllers, and services into organized components. This structure improves maintainability, scalability, and testing throughout development. The application integrates mapping services, device sensors, and accessibility features to create a more inclusive navigation experience for all users.
+
+%% Section 2: System Architecture
+\section{System Architecture}
+
+EagleNav follows a layered system architecture that separates the application into different functional layers. The main layers include the user interface, controller, and service layers. Each layer has its own responsibility, allowing the application to remain organized and easier to maintain throughout development.
+
+The controller layer manages navigation logic, route generation, and communication between the user interface and backend services. Components such as the RoutingController and GuidanceController process user input, calculate navigation routes, and provide turn-by-turn guidance. The service layer handles external integrations such as GPS location data, text-to-speech systems, and map routing services.
+
+The application uses Flutter and Dart to support both Android and iOS devices. External services such as the Valhalla routing engine are used to generate campus walking routes. Device features, including GPS, compass sensors, vibration feedback, and voice guidance, are integrated to provide real-time accessibility-focused navigation assistance for users.
+
+%% Section 3: User Interface
+\section{User Interface}
+
+The campus navigation app is used by opening the Home/Map screen, where users can search for a destination or select a saved favorite. After selecting a location, users follow the Route Guidance screen, which displays turn-by-turn directions, distance to the next turn, and optional AR navigation. Users can also browse campus events, bookmark locations, and customize accessibility settings such as text size, high contrast mode, and haptic feedback from the Settings screen.
+
+This system is designed for students, faculty, staff, and visitors navigating a university campus. It is particularly beneficial for users with accessibility needs, as it supports haptic feedback, voice guidance, caption mode, and high-contrast visual profiles. The app is suitable for both first-time visitors unfamiliar with the campus layout and regular users who want efficient, personalized navigation.
+
+The campus navigation system is a mobile application that provides real-time indoor and outdoor route guidance across campus. It features a map-based home screen, turn-by-turn guidance with AR support, a campus events browser, and a favorites system for quick access to frequent destinations. The app is built around an accessible, user-friendly interface with customizable settings to accommodate a wide range of user needs.
+
+%% Section 4: Glossary
+\section{Glossary}
+
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Term} & \textbf{Definition} \\
+\hline
+AR & Augmented Reality used for navigation overlays \\
+\hline
+GPS & Global Positioning System used for user location tracking \\
+\hline
+OSD & Office for Students with Disabilities \\
+\hline
+SDD & Software Design Document \\
+\hline
+SRS & Software Requirements Specification \\
+\hline
+UI & User Interface \\
+\hline
+API & Application Programming Interface \\
+\hline
+Routing Engine & External service used to generate navigation routes \\
+\hline
+Flutter & Cross-platform framework used to develop the application \\
+\hline
+Text-to-Speech & System that converts text instructions into spoken audio \\
+\hline
+\end{tabularx}
+
+%% Section 5: References
+\section{References}
+
+\begin{enumerate}
+    \item IEEE Software Engineering Standards Committee. \textit{IEEE Recommended Practice for Software Design Descriptions}. IEEE Std 1016-2009.
+    \item California State University, Los Angeles Campus Map. \url{https://www.calstatela.edu/map}
+    \item Flutter Documentation. \url{https://docs.flutter.dev/}
+    \item Valhalla Routing Engine Documentation. \url{https://valhalla.github.io/valhalla/}
+\end{enumerate}
+
+\end{document}

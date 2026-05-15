@@ -12,3 +12,15 @@
 /**/SDD_v*.docx
 # Ignore all README files NOT in the root directory
 /**/README.md
+
+#Ignore these specific files
+*.aux
+*.log
+*.toc
+*.out
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+*.nav
+*.snm
+*.vrb
