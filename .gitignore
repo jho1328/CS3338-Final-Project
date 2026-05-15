@@ -1,7 +1,5 @@
 # Ignore all .log files
 /**/*.log
-# Ignore the entire user manual folder
-/**/User_Manual/
 # Ignore all .txt files that have a '-' in their name
 **/*-*.txt
 # Ignore the styles.css file

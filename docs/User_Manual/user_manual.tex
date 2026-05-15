@@ -1,0 +1,107 @@
+\documentclass[12pt]{article}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{titling}
+\usepackage{hyperref}
+
+\geometry{a4paper, margin=1in}
+
+\title{User Manual}
+\author{
+    Anna Guerrero-Leon\\
+    \and
+    Jose Mateo Ayala\\
+    \and
+    Justin Ho\\
+    \and
+    Min Park\\
+    }
+\date{May 2026}
+
+\setlength{\droptitle}{6cm}
+
+\pagestyle{fancy}
+\fancyhead[L]{User Manual}
+\fancyhead[R]{Page \thepage}
+\fancyfoot[C]{}
+
+\begin{document}
+
+\begin{titlepage}
+\maketitle
+\thispagestyle{empty}
+\end{titlepage}
+
+\section*{Jira Project Link}
+
+\noindent \textbf{Jira Project URL:} \href{https://cs3338-group-2.atlassian.net}{https://cs3338-group-2.atlassian.net}
+
+\section*{Formal Objective Breakdown}
+
+The primary objective of EagleNav is to provide an accessible, audio-first campus navigation experience for students, staff, and visitors at California State University, Los Angeles, with a strong focus on supporting students with visual impairments. This includes:
+
+\begin{itemize}
+    \item Developing a cross-platform mobile application using Flutter that runs on both Android and iOS devices.
+    \item Implementing GPS-based turn-by-turn navigation using the Valhalla routing engine and a custom CSULA campus map built with OpenStreetMap data.
+    \item Providing body-relative voice guidance and orientation coaching so users can navigate without relying on visual input.
+    \item Integrating real-time obstacle detection using the YOLOv11n model to alert users to physical hazards in their path.
+    \item Supporting accessibility features including haptic feedback, high contrast mode, caption mode, and an independent in-app text-to-speech system.
+\end{itemize}
+
+\newpage
+
+\section*{Goals}
+
+EagleNav aims to remove navigation barriers on the CSULA campus by offering an inclusive, independence-focused navigation tool designed around the real needs of visually impaired students. The application provides several key benefits:
+
+\begin{itemize}
+    \item \textbf{Improved Accessibility:} Body-relative spoken directions, haptic feedback, and orientation coaching allow visually impaired users to navigate independently without relying on sighted assistance.
+    \item \textbf{Campus-Specific Routing:} Unlike general navigation apps, EagleNav uses a custom CSULA campus map that includes pedestrian-only pathways, accessible building entrances, and paved walkways.
+    \item \textbf{Real-Time Obstacle Awareness:} The object detection module uses the device camera to identify and announce nearby obstacles, giving users advance warning before reaching a hazard.
+    \item \textbf{Inclusive Design:} The app supports high contrast mode, adjustable text size, caption mode, and an independent voice system that does not interfere with iOS VoiceOver or Android TalkBack.
+    \item \textbf{Campus Event Integration:} Users can browse, bookmark, and receive notifications for upcoming campus events, helping them plan their routes and schedules more effectively.
+\end{itemize}
+
+\newpage
+
+\section*{How to Download and Access}
+
+\subsection*{Mobile Application (iOS and Android)}
+
+To run the EagleNav mobile application, you will need to have Flutter installed and configured for either Android or iOS development. It is recommended to use Visual Studio Code or Android Studio as your development environment. \\
+
+\noindent Clone the repository and open the project folder. Run the following command to install all Flutter dependencies:
+\begin{verbatim}
+flutter pub get
+\end{verbatim}
+
+\noindent To run the application on a connected device or emulator, use:
+\begin{verbatim}
+flutter run
+\end{verbatim}
+
+\noindent A physical device running Android 8.0 (Oreo) or higher, or iOS 14 or higher, is required to fully test GPS, compass, and camera features. The emulator can be used for basic UI testing but is not recommended for navigation or object detection testing. \\
+
+\noindent Make sure that the device has granted the following permissions before launching the app: Location, Camera, and Microphone.
+
+\subsection*{Backend Services (Docker)}
+
+To launch the backend routing and map services, you will need to have Docker and Docker Compose installed on your machine. \\
+
+\noindent From the root of the repository, run the following command to start all services:
+\begin{verbatim}
+docker-compose -f finalproject.yml up
+\end{verbatim}
+
+\noindent Once running, the following services will be available:
+
+\begin{itemize}
+    \item \textbf{Routing Engine (Valhalla):} \texttt{http://localhost:8002}
+    \item \textbf{Map Server:} \texttt{http://localhost:8080}
+    \item \textbf{Events Service:} \texttt{http://localhost:3000}
+\end{itemize}
+
+\noindent Note that the routing engine requires the campus \texttt{.pbf} map file to be present in the \texttt{/maps} directory before startup. On first launch, Valhalla will build the routing tiles from the map file, which may take a few minutes.
+
+\end{document}
